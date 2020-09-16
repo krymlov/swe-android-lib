@@ -6,7 +6,7 @@ Sources copied from: http://www.astro.com/ftp/swisseph
 Added:
 - Android.mk
 - Application.mk
-- swejni.cpp
+- swejni.c
 - swejni.h
 
 # Swiss Ephemeris License
