@@ -18,7 +18,7 @@ void appendToBuilder(JNIEnv *env, char *chArray, jobject builder) {
 	(*env)->CallObjectMethod(env, builder, mid, jArray);
 }
 
-JNIEXPORT void JNICALL Java_org_swisseph_SwephExp_swe_1set_1ephe_1path(JNIEnv *env, jclass swephexp, jstring jEphePath) {
+JNIEXPORT void JNICALL Java_swisseph_SwephExp_swe_1set_1ephe_1path(JNIEnv *env, jclass swephexp, jstring jEphePath) {
 	jboolean isEphePathCopy;
 	char ephe_path[AS_MAXCH];
 	
@@ -31,7 +31,7 @@ JNIEXPORT void JNICALL Java_org_swisseph_SwephExp_swe_1set_1ephe_1path(JNIEnv *e
 }
 
 /* set file name of JPL file */
-JNIEXPORT void JNICALL Java_org_swisseph_SwephExp_swe_1set_1jpl_1file(JNIEnv *env, jclass swephexp, jstring jplPath) {
+JNIEXPORT void JNICALL Java_swisseph_SwephExp_swe_1set_1jpl_1file(JNIEnv *env, jclass swephexp, jstring jplPath) {
 	jboolean isJplPathCopy;
 	char fname[AS_MAXCH];
 
@@ -43,24 +43,24 @@ JNIEXPORT void JNICALL Java_org_swisseph_SwephExp_swe_1set_1jpl_1file(JNIEnv *en
 	swe_set_jpl_file(fname);
 }
 
-JNIEXPORT void JNICALL Java_org_swisseph_SwephExp_swe_1set_1topo(JNIEnv *env, jclass swephexp, jdouble geolon, jdouble geolat, jdouble geoalt) {
+JNIEXPORT void JNICALL Java_swisseph_SwephExp_swe_1set_1topo(JNIEnv *env, jclass swephexp, jdouble geolon, jdouble geolat, jdouble geoalt) {
 	swe_set_topo(geolon, geolat, geoalt);
 }
 
-JNIEXPORT void JNICALL Java_org_swisseph_SwephExp_swe_1set_1sid_1mode(JNIEnv *env, jclass swephexp, jint sid_mode, jdouble t0, jdouble ayan_t0) {
+JNIEXPORT void JNICALL Java_swisseph_SwephExp_swe_1set_1sid_1mode(JNIEnv *env, jclass swephexp, jint sid_mode, jdouble t0, jdouble ayan_t0) {
 	swe_set_sid_mode(sid_mode, t0, ayan_t0);
 }
 
-JNIEXPORT jdouble JNICALL Java_org_swisseph_SwephExp_swe_1sidtime(JNIEnv *env, jclass swephexp, jdouble tjd_ut) {
+JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1sidtime(JNIEnv *env, jclass swephexp, jdouble tjd_ut) {
 	return swe_sidtime(tjd_ut);
 }
 
-JNIEXPORT jdouble JNICALL Java_org_swisseph_SwephExp_swe_1sidtime0
+JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1sidtime0
   (JNIEnv *env, jclass swephexp, jdouble tjd_ut, jdouble eps, jdouble nut) {
 	return swe_sidtime0(tjd_ut, eps, nut);
 }
 
-JNIEXPORT jstring JNICALL Java_org_swisseph_SwephExp_swe_1get_1planet_1name(JNIEnv *env, jclass swephexp, jint ipl) {
+JNIEXPORT jstring JNICALL Java_swisseph_SwephExp_swe_1get_1planet_1name(JNIEnv *env, jclass swephexp, jint ipl) {
 	char pnameArr[256];
 	jstring result = NULL;
 	const char * pname = swe_get_planet_name(ipl, pnameArr);
@@ -68,22 +68,22 @@ JNIEXPORT jstring JNICALL Java_org_swisseph_SwephExp_swe_1get_1planet_1name(JNIE
 	return result;
 }
 
-JNIEXPORT jdouble JNICALL Java_org_swisseph_SwephExp_swe_1get_1ayanamsa_1ut(JNIEnv *env, jclass swephexp, jdouble tjd_ut) {
+JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1get_1ayanamsa_1ut(JNIEnv *env, jclass swephexp, jdouble tjd_ut) {
 	return swe_get_ayanamsa_ut(tjd_ut);
 }
 
-JNIEXPORT jstring JNICALL Java_org_swisseph_SwephExp_swe_1get_1ayanamsa_1name(JNIEnv *env, jclass swephexp, jint isidmode) {
+JNIEXPORT jstring JNICALL Java_swisseph_SwephExp_swe_1get_1ayanamsa_1name(JNIEnv *env, jclass swephexp, jint isidmode) {
 	jstring result = NULL;
 	const char *ayanamsa_name = swe_get_ayanamsa_name(isidmode);
 	if ( NULL != ayanamsa_name) result = (*env)->NewStringUTF(env, ayanamsa_name);
 	return result;
 }
 
-JNIEXPORT jdouble JNICALL Java_org_swisseph_SwephExp_swe_1get_1ayanamsa(JNIEnv *env, jclass swephexp, jdouble tjd_et) {
+JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1get_1ayanamsa(JNIEnv *env, jclass swephexp, jdouble tjd_et) {
 	return swe_get_ayanamsa(tjd_et);
 }
 
-JNIEXPORT jint JNICALL Java_org_swisseph_SwephExp_swe_1houses(JNIEnv *env, jclass swephexp, jdouble tjd_ut,
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1houses(JNIEnv *env, jclass swephexp, jdouble tjd_ut,
 jdouble geolat, jdouble geolon, jint hsys, jdoubleArray cuspsArray, jdoubleArray ascmcArray) {
 	jboolean isCuspsCopy, isAscmcCopy;
 
@@ -103,7 +103,7 @@ jdouble geolat, jdouble geolon, jint hsys, jdoubleArray cuspsArray, jdoubleArray
 	return retc;
 }
 
-JNIEXPORT jint JNICALL Java_org_swisseph_SwephExp_swe_1houses_1ex(JNIEnv *env, jclass swephexp, jdouble tjd_ut,
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1houses_1ex(JNIEnv *env, jclass swephexp, jdouble tjd_ut,
 jint iflag, jdouble geolat, jdouble geolon, jint hsys, jdoubleArray cuspsArray, jdoubleArray ascmcArray) {
 	jboolean isCuspsCopy, isAscmcCopy;
 
@@ -117,7 +117,7 @@ jint iflag, jdouble geolat, jdouble geolon, jint hsys, jdoubleArray cuspsArray, 
 	return retc;
 }
 
-JNIEXPORT jint JNICALL Java_org_swisseph_SwephExp_swe_1calc(JNIEnv *env, jclass swephexp, jdouble tjd, jint ipl,
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1calc(JNIEnv *env, jclass swephexp, jdouble tjd, jint ipl,
 jint iflag, jdoubleArray xxArray, jobject errBuilder) {
 	jboolean isXxCopy;
 	char serr[256];
@@ -131,7 +131,7 @@ jint iflag, jdoubleArray xxArray, jobject errBuilder) {
 	return retc;
 }
 
-JNIEXPORT jint JNICALL Java_org_swisseph_SwephExp_swe_1calc_1ut(JNIEnv *env, jclass swephexp, jdouble tjd_ut, jint ipl,
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1calc_1ut(JNIEnv *env, jclass swephexp, jdouble tjd_ut, jint ipl,
 jint iflag, jdoubleArray xxArray, jobject errBuilder) {
 	jboolean isXxCopy;
 	char serr[256];
@@ -145,7 +145,7 @@ jint iflag, jdoubleArray xxArray, jobject errBuilder) {
 	return retc;
 }
 
-JNIEXPORT jint JNICALL Java_org_swisseph_SwephExp_swe_1sol_1eclipse_1when_1loc(JNIEnv *env, jclass swephexp, jdouble tjd_start,
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1sol_1eclipse_1when_1loc(JNIEnv *env, jclass swephexp, jdouble tjd_start,
 jint ifl, jdoubleArray geoposArray, jdoubleArray tretArray, jdoubleArray attrArray, jint backward, jobject errBuilder) {
 	char serr[256];
 	jboolean isGeoposCopy, isTretCopy, isAttrCopy;
@@ -165,7 +165,7 @@ jint ifl, jdoubleArray geoposArray, jdoubleArray tretArray, jdoubleArray attrArr
 	return retc;
 }
 
-JNIEXPORT jint JNICALL Java_org_swisseph_SwephExp_swe_1lun_1eclipse_1when_1loc(JNIEnv *env, jclass swephexp, jdouble tjd_start,
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1lun_1eclipse_1when_1loc(JNIEnv *env, jclass swephexp, jdouble tjd_start,
 jint ifl, jdoubleArray geoposArray, jdoubleArray tretArray, jdoubleArray attrArray, jint backward, jobject errBuilder) {
 	char serr[256];
 	jboolean isGeoposCopy, isTretCopy, isAttrCopy;
@@ -185,7 +185,7 @@ jint ifl, jdoubleArray geoposArray, jdoubleArray tretArray, jdoubleArray attrArr
 	return retc;
 }
 
-JNIEXPORT jint JNICALL Java_org_swisseph_SwephExp_swe_1sol_1eclipse_1when_1glob(JNIEnv *env, jclass swephexp,
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1sol_1eclipse_1when_1glob(JNIEnv *env, jclass swephexp,
 jdouble tjd_start, jint ifl, jint ifltype, jdoubleArray tretArray, jint backward, jobject errBuilder) {
 	char serr[256];
 	jboolean isTretCopy;
@@ -198,7 +198,7 @@ jdouble tjd_start, jint ifl, jint ifltype, jdoubleArray tretArray, jint backward
 	return retc;
 }
 
-JNIEXPORT jint JNICALL Java_org_swisseph_SwephExp_swe_1lun_1eclipse_1when(JNIEnv *env, jclass swephexp, jdouble tjd_start,
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1lun_1eclipse_1when(JNIEnv *env, jclass swephexp, jdouble tjd_start,
 jint ifl, jint ifltype, jdoubleArray tretArray, jint backward, jobject errBuilder) {
 	char serr[256];
 	jboolean isTretCopy;
@@ -211,7 +211,7 @@ jint ifl, jint ifltype, jdoubleArray tretArray, jint backward, jobject errBuilde
 	return retc;
 }
 
-JNIEXPORT jint JNICALL Java_org_swisseph_SwephExp_swe_1rise_1trans(JNIEnv *env, jclass swephexp, jdouble tjd_ut, jint ipl,
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1rise_1trans(JNIEnv *env, jclass swephexp, jdouble tjd_ut, jint ipl,
 jobject starnameBuilder, jint epheflag, jint rsmi, jdoubleArray geoposArray, jdouble atpress, jdouble attemp, jdoubleArray tretArray, jobject errBuilder) {
 	char serr[256];
 	char* starName = NULL;
@@ -238,7 +238,7 @@ jobject starnameBuilder, jint epheflag, jint rsmi, jdoubleArray geoposArray, jdo
 	return retc;
 }
 
-JNIEXPORT jint JNICALL Java_org_swisseph_SwephExp_swe_1date_1conversion
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1date_1conversion
   (JNIEnv *env, jclass swephexp, jint y, jint m, jint d, jdouble utime, jchar calendarType, jdoubleArray tjdArray) {
 	jboolean isTjdCopy;
 	jdouble *tjd = (*env)->GetDoubleArrayElements(env, tjdArray, &isTjdCopy);
@@ -252,12 +252,12 @@ JNIEXPORT jint JNICALL Java_org_swisseph_SwephExp_swe_1date_1conversion
 	return retc;
 }
 
-JNIEXPORT jdouble JNICALL Java_org_swisseph_SwephExp_swe_1julday
+JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1julday
   (JNIEnv *env, jclass swephexp, jint year, jint month, jint day, jdouble hour, jint gregflag) {
 	return swe_julday(year, month, day, hour, gregflag);
 }
 
-JNIEXPORT void JNICALL Java_org_swisseph_SwephExp_swe_1revjul
+JNIEXPORT void JNICALL Java_swisseph_SwephExp_swe_1revjul
   (JNIEnv *env, jclass swephexp, jdouble jd, jint gregflag, jintArray ymdArray, jdoubleArray utimeArray) {
 	jboolean isYmdCopy, isUtimeCopy;
 
@@ -272,43 +272,43 @@ JNIEXPORT void JNICALL Java_org_swisseph_SwephExp_swe_1revjul
 	if (isUtimeCopy == JNI_TRUE) (*env)->ReleaseDoubleArrayElements(env, utimeArray, utime, 0);
 }
 
-JNIEXPORT jdouble JNICALL Java_org_swisseph_SwephExp_swe_1deltat
+JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1deltat
 (JNIEnv *env, jclass swephexp, jdouble tjd) {
 	return swe_deltat(tjd);
 }
 
-JNIEXPORT jdouble JNICALL Java_org_swisseph_SwephExp_swe_1deltat_1ex
+JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1deltat_1ex
 (JNIEnv *env, jclass swephexp, jdouble tjd, jint iflag, jobject errBuilder) {
 	return swe_deltat_ex(tjd, iflag, NULL);
 }
 
-JNIEXPORT jdouble JNICALL Java_org_swisseph_SwephExp_swe_1get_1tid_1acc
+JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1get_1tid_1acc
   (JNIEnv *env, jclass swephexp) {
 	return swe_get_tid_acc();
 }
 
-JNIEXPORT void JNICALL Java_org_swisseph_SwephExp_swe_1set_1tid_1acc
+JNIEXPORT void JNICALL Java_swisseph_SwephExp_swe_1set_1tid_1acc
   (JNIEnv *env, jclass swephexp, jdouble t_acc) {
 	swe_set_tid_acc(t_acc);
 }
 
-JNIEXPORT void JNICALL Java_org_swisseph_SwephExp_swe_1set_1delta_1t_1userdef
+JNIEXPORT void JNICALL Java_swisseph_SwephExp_swe_1set_1delta_1t_1userdef
   (JNIEnv *env, jclass swephexp, jdouble dt) {
 	swe_set_delta_t_userdef(dt);
 }
 
-JNIEXPORT void JNICALL Java_org_swisseph_SwephExp_swe_1close(JNIEnv *env, jclass swephexp) {
+JNIEXPORT void JNICALL Java_swisseph_SwephExp_swe_1close(JNIEnv *env, jclass swephexp) {
 	swe_close();
 }
 
-JNIEXPORT jstring JNICALL Java_org_swisseph_SwephExp_swe_1house_1name(JNIEnv *env, jclass swephexp, jint hsys) {
+JNIEXPORT jstring JNICALL Java_swisseph_SwephExp_swe_1house_1name(JNIEnv *env, jclass swephexp, jint hsys) {
 	jstring result = NULL;
 	char *house_name = swe_house_name(hsys);
 	if ( NULL != house_name ) result = (*env)->NewStringUTF(env, house_name);
 	return result;
 }
 
-JNIEXPORT jint JNICALL Java_org_swisseph_SwephExp_swe_1utc_1to_1jd(JNIEnv *env, jclass swephexp,jint iyear,jint imonth,
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1utc_1to_1jd(JNIEnv *env, jclass swephexp,jint iyear,jint imonth,
 jint iday, jint ihour, jint imin, jdouble dsec, jint gregflag, jdoubleArray dretArray, jobject errBuilder) {
 	char serr[256];
 	jboolean isDretCopy;
@@ -322,7 +322,7 @@ jint iday, jint ihour, jint imin, jdouble dsec, jint gregflag, jdoubleArray dret
 	return retc;
 }
 
-JNIEXPORT void JNICALL Java_org_swisseph_SwephExp_swe_1jdet_1to_1utc
+JNIEXPORT void JNICALL Java_swisseph_SwephExp_swe_1jdet_1to_1utc
   (JNIEnv *env, jclass swephexp, jdouble tjd_et, jint gregflag, jintArray ymdhmArray, jdoubleArray dsecArray) {
 	jboolean isYmdhmCopy, isDsecCopy;
 	jint *ymdhmOut = (*env)->GetIntArrayElements(env, ymdhmArray, &isYmdhmCopy);
@@ -335,7 +335,7 @@ JNIEXPORT void JNICALL Java_org_swisseph_SwephExp_swe_1jdet_1to_1utc
 	if (isYmdhmCopy == JNI_TRUE) (*env)->ReleaseIntArrayElements(env, ymdhmArray, ymdhmOut, 0);
 }
 
-JNIEXPORT void JNICALL Java_org_swisseph_SwephExp_swe_1jdut1_1to_1utc
+JNIEXPORT void JNICALL Java_swisseph_SwephExp_swe_1jdut1_1to_1utc
   (JNIEnv *env, jclass swephexp, jdouble tjd_ut, jint gregflag, jintArray ymdhmArray, jdoubleArray dsecArray) {
 	jboolean isYmdhmCopy, isDsecCopy;
 	jint *ymdhmOut = (*env)->GetIntArrayElements(env, ymdhmArray, &isYmdhmCopy);
@@ -350,7 +350,7 @@ JNIEXPORT void JNICALL Java_org_swisseph_SwephExp_swe_1jdut1_1to_1utc
 	if (isYmdhmCopy == JNI_TRUE) (*env)->ReleaseIntArrayElements(env, ymdhmArray, ymdhmOut, 0);
 }
 
-JNIEXPORT void JNICALL Java_org_swisseph_SwephExp_swe_1utc_1time_1zone(JNIEnv *env, jclass swephexp,jint iyear,jint imonth,
+JNIEXPORT void JNICALL Java_swisseph_SwephExp_swe_1utc_1time_1zone(JNIEnv *env, jclass swephexp, jint iyear, jint imonth,
 jint iday, jint ihour, jint imin, jdouble dsec, jdouble d_timezone, jintArray ymdhmArray, jdoubleArray dsecArray) {
 	jboolean isYmdhmCopy, isDsecCopy;
 	jint *ymdhmOut = (*env)->GetIntArrayElements(env, ymdhmArray, &isYmdhmCopy);
