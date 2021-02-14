@@ -10,10 +10,10 @@ extern "C" {
 /*
  * Class:     swisseph_SwephExp
  * Method:    swe_heliacal_ut
- * Signature: (D[D[D[DLjava/lang/StringBuilder;II[DLjava/lang/StringBuilder;)I
+ * Signature: (D[D[D[DLjava/lang/String;II[DLjava/lang/StringBuilder;)I
  */
 JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1heliacal_1ut
-  (JNIEnv *, jclass, jdouble, jdoubleArray, jdoubleArray, jdoubleArray, jobject, jint, jint, jdoubleArray, jobject);
+  (JNIEnv *, jclass, jdouble, jdoubleArray, jdoubleArray, jdoubleArray, jstring, jint, jint, jdoubleArray, jobject);
 
 /*
  * Class:     swisseph_SwephExp
@@ -21,7 +21,7 @@ JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1heliacal_1ut
  * Signature: (D[D[D[DLjava/lang/StringBuilder;II[DLjava/lang/StringBuilder;)I
  */
 JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1heliacal_1pheno_1ut
-  (JNIEnv *, jclass, jdouble, jdoubleArray, jdoubleArray, jdoubleArray, jobject, jint, jint, jdoubleArray, jobject);
+  (JNIEnv *, jclass, jdouble, jdoubleArray, jdoubleArray, jdoubleArray, jstring, jint, jint, jdoubleArray, jobject);
 
 /*
  * Class:     swisseph_SwephExp

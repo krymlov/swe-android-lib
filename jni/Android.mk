@@ -1,7 +1,7 @@
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := Swe2z10
+LOCAL_MODULE := swe2v10
 
 LOCAL_LDFLAGS   += -ffunction-sections -fdata-sections -Wl,--gc-sections
 LOCAL_CFLAGS    += -ffunction-sections -fdata-sections -fvisibility=hidden -Wall
