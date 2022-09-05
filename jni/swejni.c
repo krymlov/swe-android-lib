@@ -1,7 +1,7 @@
 /*
  * Author    Yura Krymlov
  * Created   2021-02
- * Version   2.10
+ * Version   2.10.03
  */
  
 #include "swephexp.h"
@@ -603,9 +603,9 @@ Java_swisseph_SwephExp_swe_1close(JNIEnv *env, jclass swephexp) {
 JNIEXPORT void JNICALL
 Java_swisseph_SwephExp_swe_1set_1ephe_1path(JNIEnv *env, jclass swephexp, jstring jEphePath) {
     GET_STRING_UTF_CHARS(isCopy, jEphePath, ephePath)
-    CPY_CSTRING_TO_CHARS(ephePath, ephe_path)
+    //CPY_CSTRING_TO_CHARS(ephePath, ephe_path) SINCE: 2.10.03
 
-    swe_set_ephe_path(ephe_path);
+    swe_set_ephe_path(ephePath);
 
     RLZ_STRING_UTF_CHARS(isCopy, jEphePath, ephePath)
 }
@@ -618,9 +618,9 @@ Java_swisseph_SwephExp_swe_1set_1ephe_1path(JNIEnv *env, jclass swephexp, jstrin
 JNIEXPORT void JNICALL
 Java_swisseph_SwephExp_swe_1set_1jpl_1file(JNIEnv *env, jclass swephexp, jstring jplPath) {
     GET_STRING_UTF_CHARS(isCopy, jplPath, jplFile)
-    CPY_CSTRING_TO_CHARS(jplFile, fname)
+    //CPY_CSTRING_TO_CHARS(jplFile, fname) SINCE: 2.10.03
 
-    swe_set_jpl_file(fname);
+    swe_set_jpl_file(jplFile);
 
     RLZ_STRING_UTF_CHARS(isCopy, jplPath, jplFile)
 }
@@ -1060,7 +1060,7 @@ Java_swisseph_SwephExp_swe_1house_1pos(JNIEnv *env, jclass swephexp, jdouble arm
 JNIEXPORT jstring JNICALL
 Java_swisseph_SwephExp_swe_1house_1name(JNIEnv *env, jclass swephexp, jint hsys) {
     jstring result = NULL;
-    char *house_name = swe_house_name(hsys);
+    const char *house_name = swe_house_name(hsys);
     if (NULL != house_name) result = (*env)->NewStringUTF(env, house_name);
     return result;
 }
