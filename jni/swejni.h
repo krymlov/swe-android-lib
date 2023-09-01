@@ -695,6 +695,62 @@ JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1deg_1midp
 JNIEXPORT void JNICALL Java_swisseph_SwephExp_swe_1split_1deg
   (JNIEnv *, jclass, jdouble, jint, jintArray, jdoubleArray, jintArray);
 
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_solcross
+ */
+JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1solcross
+    (JNIEnv *, jclass, jdouble, jdouble, jint, jobject);
+
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_solcross_ut
+ */
+JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1solcross_1ut
+    (JNIEnv *, jclass, jdouble, jdouble, jint, jobject);
+
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_mooncross
+ */
+JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1mooncross
+    (JNIEnv *, jclass, jdouble, jdouble, jint, jobject);
+
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_mooncross_ut
+ */
+JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1mooncross_1ut
+    (JNIEnv *, jclass, jdouble, jdouble, jint, jobject);
+
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_mooncross_node
+ */
+JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1mooncross_1node
+    (JNIEnv *, jclass, jdouble, jint, jdoubleArray, jdoubleArray, jobject);
+
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_mooncross_node_ut
+ */
+JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1mooncross_1node_1ut
+    (JNIEnv *, jclass, jdouble, jint, jdoubleArray, jdoubleArray, jobject);
+
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_helio_cross
+ */
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1helio_1cross
+    (JNIEnv *, jclass, jint, jdouble, jdouble, jint, jint, jdoubleArray, jobject);
+
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_helio_cross_ut
+ */
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1helio_1cross_1ut
+    (JNIEnv *, jclass, jint, jdouble, jdouble, jint, jint, jdoubleArray, jobject);
+
 #ifdef __cplusplus
 }
 #endif

@@ -1911,3 +1911,147 @@ Java_swisseph_SwephExp_swe_1split_1deg(JNIEnv *env, jclass swephexp, jdouble dde
     RLZ_INT_ARRAY_ELEMENTS_OK(isInt2Copy, iSgnArray, sgnOut)
     RLZ_DOUBLE_ARRAY_ELEMENTS_OK(isDblCopy, dSfrArray, sfrOut)
 }
+
+/*
+ * double swe_solcross(double x2cross, double jd_et, int32 flag, char *serr)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_solcross
+ */
+JNIEXPORT jdouble JNICALL
+Java_swisseph_SwephExp_swe_1solcross(JNIEnv *env, jclass swephexp, jdouble x2cross, jdouble jd_et, jint flag, jobject errBuilder) {
+    DEFINE_CHAR_SERR
+
+    jdouble juldate = swe_solcross(x2cross, jd_et, flag, serr);
+
+    ERR_BUILDER_APPEND_IF_SERR
+    return juldate;
+}
+
+/*
+ * double swe_solcross_ut(double x2cross, double jd_ut, int32 flag, char *serr)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_solcross_ut
+ */
+JNIEXPORT jdouble JNICALL
+Java_swisseph_SwephExp_swe_1solcross_1ut(JNIEnv *env, jclass swephexp, jdouble x2cross, jdouble jd_ut, jint flag, jobject errBuilder) {
+    DEFINE_CHAR_SERR
+
+    jdouble juldate = swe_solcross_ut(x2cross, jd_ut, flag, serr);
+
+    ERR_BUILDER_APPEND_IF_SERR
+    return juldate;
+}
+
+/*
+ * double swe_mooncross(double x2cross, double jd_et, int flag, char *serr)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_mooncross
+ */
+JNIEXPORT jdouble JNICALL
+Java_swisseph_SwephExp_swe_1mooncross(JNIEnv *env, jclass swephexp, jdouble x2cross, jdouble jd_et, jint flag, jobject errBuilder) {
+    DEFINE_CHAR_SERR
+
+    jdouble juldate = swe_mooncross(x2cross, jd_et, flag, serr);
+
+    ERR_BUILDER_APPEND_IF_SERR
+    return juldate;
+}
+
+/*
+ * double swe_mooncross_ut(double x2cross, double jd_ut, int flag, char *serr)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_mooncross_ut
+ */
+JNIEXPORT jdouble JNICALL
+Java_swisseph_SwephExp_swe_1mooncross_1ut(JNIEnv *env, jclass swephexp, jdouble x2cross, jdouble jd_ut, jint flag, jobject errBuilder) {
+    DEFINE_CHAR_SERR
+
+    jdouble juldate = swe_mooncross_ut(x2cross, jd_ut, flag, serr);
+
+    ERR_BUILDER_APPEND_IF_SERR
+    return juldate;
+}
+
+/*
+ * double swe_mooncross_node(double jd_et, int flag, double *xlon, double *xla, char *serr)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_mooncross_node
+ */
+JNIEXPORT jdouble JNICALL
+Java_swisseph_SwephExp_swe_1mooncross_1node(JNIEnv *env, jclass swephexp, jdouble jd_et, jint flag,
+                                            jdoubleArray xlonArray, jdoubleArray xlatArray, jobject errBuilder) {
+    DEFINE_CHAR_SERR
+    GET_DOUBLE_ARRAY_ELEMENTS(isCopy1, xlonArray, xlon)
+    GET_DOUBLE_ARRAY_ELEMENTS(isCopy2, xlatArray, xlat)
+
+    double juldate = swe_mooncross_node(jd_et, flag, xlon, xlat, serr);
+
+    RLZ_DOUBLE_ARRAY_ELEMENTS_OK(isCopy1, xlonArray, xlon)
+    RLZ_DOUBLE_ARRAY_ELEMENTS_OK(isCopy2, xlatArray, xlat)
+    ERR_BUILDER_APPEND_IF_SERR
+    return juldate;
+}
+
+/*
+ * double swe_mooncross_node_ut(double jd_ut, int flag, double *xlon, double *xla, char *serr)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_mooncross_node_ut
+ */
+JNIEXPORT jdouble JNICALL
+Java_swisseph_SwephExp_swe_1mooncross_1node_1ut(JNIEnv *env, jclass swephexp, jdouble jd_ut, jint flag,
+                                                jdoubleArray xlonArray, jdoubleArray xlatArray, jobject errBuilder) {
+    DEFINE_CHAR_SERR
+    GET_DOUBLE_ARRAY_ELEMENTS(isCopy1, xlonArray, xlon)
+    GET_DOUBLE_ARRAY_ELEMENTS(isCopy2, xlatArray, xlat)
+
+    double juldate = swe_mooncross_node_ut(jd_ut, flag, xlon, xlat, serr);
+
+    RLZ_DOUBLE_ARRAY_ELEMENTS_OK(isCopy1, xlonArray, xlon)
+    RLZ_DOUBLE_ARRAY_ELEMENTS_OK(isCopy2, xlatArray, xlat)
+    ERR_BUILDER_APPEND_IF_SERR
+    return juldate;
+}
+
+/*
+ * int32 swe_helio_cross(int ipl, double x2cross, double jd_et, int iflag, int dir, double *jd_cross, char *serr)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_helio_cross
+ */
+JNIEXPORT jint JNICALL
+Java_swisseph_SwephExp_swe_1helio_1cross(JNIEnv *env, jclass swephexp, jint ipl, jdouble x2cross, jdouble jd_et,
+                                         jint iflag, jint dir, jdoubleArray jdCrossArray, jobject errBuilder) {
+    DEFINE_CHAR_SERR
+    GET_DOUBLE_ARRAY_ELEMENTS(isCopy1, jdCrossArray, jd_cross)
+
+    int32 retc = swe_helio_cross(ipl, x2cross, jd_et, iflag, dir, jd_cross, serr);
+
+    RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy1, jdCrossArray, jd_cross)
+    ERR_BUILDER_APPEND_IF_SERR
+    return retc;
+}
+
+/*
+ * int32 swe_helio_cross_ut(int32 ipl, double x2cross, double jd_ut, int32 iflag, int32 dir, double *jd_cross, char *serr)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_helio_cross_ut
+ */
+JNIEXPORT jint JNICALL
+Java_swisseph_SwephExp_swe_1helio_1cross_1ut(JNIEnv *env, jclass swephexp, jint ipl, jdouble x2cross, jdouble jd_ut,
+                                         jint iflag, jint dir, jdoubleArray jdCrossArray, jobject errBuilder) {
+    DEFINE_CHAR_SERR
+    GET_DOUBLE_ARRAY_ELEMENTS(isCopy1, jdCrossArray, jd_cross)
+
+    int32 retc = swe_helio_cross_ut(ipl, x2cross, jd_ut, iflag, dir, jd_cross, serr);
+
+    RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy1, jdCrossArray, jd_cross)
+    ERR_BUILDER_APPEND_IF_SERR
+    return retc;
+}
