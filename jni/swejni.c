@@ -99,7 +99,7 @@ void emptyBuilder(JNIEnv *env, jobject builder) {
     if (mid == 0) return;
 
     // Call the StringBuilder object's setLength method
-    (*env)->CallObjectMethod(env, builder, mid, 0);
+    (*env)->CallVoidMethod(env, builder, mid, 0);
 }
 
 void appendToBuilder(JNIEnv *env, char *chArray, jobject builder) {
