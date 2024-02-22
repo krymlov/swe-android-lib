@@ -6,10 +6,10 @@ android {
     compileSdk 34
 
     defaultConfig {
-        minSdk 21
+        minSdk 24
         targetSdk 33
-        versionCode 9
-        versionName "2.10.03j3e"
+        versionCode 10
+        versionName "2.10.03j3g"
     }
 
     buildTypes {
