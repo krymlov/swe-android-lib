@@ -3,12 +3,12 @@ apply plugin: 'maven-publish'
 
 android {
     namespace 'org.swisseph'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         minSdk 24
-        targetSdk 34
-        versionCode 12
+        targetSdk 35
+        versionCode 13
         versionName "2.10.03j5g"
     }
 
