@@ -6,9 +6,9 @@ android {
     compileSdk 35
 
     defaultConfig {
-        minSdk 24
+        minSdk 21
         targetSdk 35
-        versionCode 14
+        versionCode 15
         versionName "2.10.03j5g"
     }
 
@@ -26,7 +26,7 @@ android {
 }
 
 dependencies {
-    implementation(platform('org.jetbrains.kotlin:kotlin-bom:2.0.20'))
+    implementation(platform('org.jetbrains.kotlin:kotlin-bom:2.0.21'))
 }
 
 afterEvaluate {
