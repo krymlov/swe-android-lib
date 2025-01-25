@@ -8,7 +8,7 @@ android {
     defaultConfig {
         minSdk 21
         targetSdk 35
-        versionCode 15
+        versionCode 16
         versionName "2.10.03j5g"
     }
 
