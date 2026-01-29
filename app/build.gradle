@@ -8,7 +8,7 @@ android {
     defaultConfig {
         minSdk 21
         targetSdk 36
-        versionCode 21
+        versionCode 23
         versionName "2.10.03j5g"
     }
 
@@ -37,11 +37,6 @@ afterEvaluate {
                 artifactId 'swe-android'
                 version android.defaultConfig.versionName
                 artifact(bundleReleaseAar)
-            }
-        }
-        repositories {
-            maven {
-                url = mavenLocal().url
             }
         }
     }
