@@ -3,7 +3,7 @@ apply plugin: 'maven-publish'
 
 android {
     namespace 'org.swisseph'
-    compileSdk 37
+    compileSdk 36
 
     defaultConfig {
         minSdk 21
