@@ -83,7 +83,13 @@
  * Sun Studio C/C++, IBM XL C/C++, GNU C and Intel C/C++ (Linux systems) -> __thread
  * Borland, VC++ -> __declspec(thread)
  */
-#if !defined(TLSOFF) && !defined( __APPLE__ ) && !defined(WIN32) && !defined(DOS32)
+/* MinGW-w64 predefines WIN32, which would take this guard's else branch and leave
+ * TLS empty - 'swed' then becomes one global shared by every thread and concurrent
+ * swe_calc_ut() crashes with an access violation. MSVC x64 does not define WIN32
+ * (only the 32 bit configurations do), so it already gets __declspec(thread).
+ * Treat MinGW the same way. This is the only deliberate divergence from the
+ * upstream Swiss Ephemeris sources - see CLAUDE.md. */
+#if !defined(TLSOFF) && !defined( __APPLE__ ) && (!defined(WIN32) || defined(__MINGW32__)) && !defined(DOS32)
 #if defined( __GNUC__ ) || defined( __CYGWIN__ ) 
 #define TLS     __thread
 #else
