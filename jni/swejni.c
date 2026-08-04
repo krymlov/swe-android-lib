@@ -4,12 +4,29 @@
  * Version   2.10.03
  */
  
+#include <string.h>
+
 #include "swephexp.h"
 #include "swejni.h"
 
-#define JNI_RELEASE (ERR >= retc ? JNI_ABORT : JNI_OK)
+/*
+ * Every Get<Type>ArrayElements()/GetStringUTFChars() MUST be paired with the
+ * matching Release...() call, no matter what the isCopy flag says. When the VM
+ * does not copy (the usual case on ART) it pins the array instead, and a missing
+ * Release leaves the object pinned forever - which on ART also keeps the moving
+ * GC disabled. The IS_COPY argument is kept for documentation/debugging only.
+ *
+ * Release modes:
+ *      0 (JNI_OK)  Copy the contents of the buffer back into array and free the buffer
+ *      JNI_COMMIT  Copy the contents of the buffer back into array but do not free buffer
+ *      JNI_ABORT   Free the buffer without copying back any changes
+ *
+ * Mode 0 is used unconditionally for out-parameters so that the observable
+ * behaviour is identical whether or not the VM decided to copy (e.g. under
+ * CheckJNI, which always copies).
+ */
 
-#define DEFINE_CHAR_SERR char serr[AS_MAXCH];
+#define DEFINE_CHAR_SERR char serr[AS_MAXCH]; *serr = '\0';
 #define ERR_BUILDER_APPEND_IF_ERR if (ERR >= retc && NULL != errBuilder) appendToBuilder(env, serr, errBuilder);
 #define ERR_BUILDER_APPEND_IF_SERR if (*serr != '\0' && NULL != errBuilder) appendToBuilder(env, serr, errBuilder);
 
@@ -18,29 +35,56 @@
     jdouble* ELEMENTS = (NULL != JDOUBLE_ARRAY) ? (*env)->GetDoubleArrayElements(env, JDOUBLE_ARRAY, &IS_COPY) : NULL;
 
 #define RLZ_DOUBLE_ARRAY_ELEMENTS_OK(IS_COPY, JDOUBLE_ARRAY, ELEMENTS)\
-    if (JNI_TRUE == IS_COPY && NULL != JDOUBLE_ARRAY) (*env)->ReleaseDoubleArrayElements(env, JDOUBLE_ARRAY, ELEMENTS, JNI_OK);
+    (void) IS_COPY;                                                            \
+    if (NULL != ELEMENTS) (*env)->ReleaseDoubleArrayElements(env, JDOUBLE_ARRAY, ELEMENTS, 0);
 
 #define RLZ_DOUBLE_ARRAY_ELEMENTS(IS_COPY, JDOUBLE_ARRAY, ELEMENTS)\
-    if (JNI_TRUE == IS_COPY && NULL != JDOUBLE_ARRAY) (*env)->ReleaseDoubleArrayElements(env, JDOUBLE_ARRAY, ELEMENTS, JNI_RELEASE);
+    (void) IS_COPY;                                                            \
+    if (NULL != ELEMENTS) (*env)->ReleaseDoubleArrayElements(env, JDOUBLE_ARRAY, ELEMENTS, 0);
 
 #define GET_INT_ARRAY_ELEMENTS(IS_COPY, JINT_ARRAY, ELEMENTS) \
     jboolean IS_COPY = JNI_FALSE;                                         \
     jint * ELEMENTS = (NULL != JINT_ARRAY) ? (*env)->GetIntArrayElements(env, JINT_ARRAY, &IS_COPY) : NULL;
 
 #define RLZ_INT_ARRAY_ELEMENTS_OK(IS_COPY, JINT_ARRAY, ELEMENTS)\
-    if (JNI_TRUE == IS_COPY && NULL != JINT_ARRAY) (*env)->ReleaseIntArrayElements(env, JINT_ARRAY, ELEMENTS, JNI_OK);
+    (void) IS_COPY;                                                       \
+    if (NULL != ELEMENTS) (*env)->ReleaseIntArrayElements(env, JINT_ARRAY, ELEMENTS, 0);
 
 #define GET_STRING_UTF_CHARS(IS_COPY, JSTRING, CCSTRING)\
     jboolean IS_COPY = JNI_FALSE;                                   \
     const char* CCSTRING = (NULL != JSTRING) ? (*env)->GetStringUTFChars(env, JSTRING, &IS_COPY) : NULL;
 
 #define RLZ_STRING_UTF_CHARS(IS_COPY, JSTRING, CCSTRING)\
-    if (JNI_TRUE == IS_COPY && NULL != JSTRING) (*env)->ReleaseStringUTFChars(env, JSTRING, CCSTRING);
+    (void) IS_COPY;                                                 \
+    if (NULL != CCSTRING) (*env)->ReleaseStringUTFChars(env, JSTRING, CCSTRING);
 
-#define CPY_CSTRING_TO_CHARS(CCSTRING, CHARS)    \
-    char CHARS[AS_MAXCH];                        \
-    if (NULL == CCSTRING) *CHARS = '\0';         \
-    else strcpy(CHARS, CCSTRING);
+/* Bounded copy: swisseph writes the resolved name back into CHARS, so the
+ * buffer must stay AS_MAXCH bytes long, but the incoming Java string may be
+ * of any length - strcpy() would smash the stack. */
+#define CPY_CSTRING_TO_CHARS(CCSTRING, CHARS)                    \
+    char CHARS[AS_MAXCH];                                        \
+    if (NULL == CCSTRING) *CHARS = '\0';                         \
+    else {                                                       \
+        strncpy(CHARS, CCSTRING, AS_MAXCH - 1);                  \
+        CHARS[AS_MAXCH - 1] = '\0';                              \
+    }
+
+/* Length-aware writeback for the fixed-size int/double out-parameters.
+ * Guards against a null array reference and against a Java array that is
+ * shorter than the number of values swisseph produced. */
+#define SET_INT_ARRAY_ELEMENTS(JINT_ARRAY, ELEMENTS, SOURCE, COUNT)          \
+    if (NULL != ELEMENTS) {                                                  \
+        jsize n_ = (*env)->GetArrayLength(env, JINT_ARRAY);                  \
+        if (n_ > (jsize)(COUNT)) n_ = (jsize)(COUNT);                        \
+        for (jsize i_ = 0; i_ < n_; i_++) ELEMENTS[i_] = (jint)(SOURCE)[i_]; \
+    }
+
+#define SET_DBL_ARRAY_ELEMENTS(JDBL_ARRAY, ELEMENTS, SOURCE, COUNT)             \
+    if (NULL != ELEMENTS) {                                                     \
+        jsize n_ = (*env)->GetArrayLength(env, JDBL_ARRAY);                     \
+        if (n_ > (jsize)(COUNT)) n_ = (jsize)(COUNT);                           \
+        for (jsize i_ = 0; i_ < n_; i_++) ELEMENTS[i_] = (jdouble)(SOURCE)[i_]; \
+    }
 
 #define BUILDER_APPEND_IF_DIFF(BUILDER, CCSTRING, CHARS)    \
     if (NULL != BUILDER && NULL != CCSTRING && 0 != strcmp(CCSTRING, CHARS)) { \
@@ -748,11 +792,11 @@ Java_swisseph_SwephExp_swe_1get_1current_1file_1data(JNIEnv *env, jclass swephex
     GET_DOUBLE_ARRAY_ELEMENTS(isCopy2, tfendArray, tfend)
     GET_INT_ARRAY_ELEMENTS(isCopy, denumArray, denum)
 
-    int32 sweph_denum[1];
+    int32 sweph_denum[1] = {0};
     jstring result = NULL;
     const char *data = swe_get_current_file_data(ifno, tfstart, tfend, &sweph_denum[0]);
     if (NULL != data) result = (*env)->NewStringUTF(env, data);
-    denum[0] = sweph_denum[0];
+    SET_INT_ARRAY_ELEMENTS(denumArray, denum, sweph_denum, 1)
 
     RLZ_DOUBLE_ARRAY_ELEMENTS_OK(isCopy1, tfstartArray, tfstart)
     RLZ_DOUBLE_ARRAY_ELEMENTS_OK(isCopy2, tfendArray, tfend)
@@ -801,15 +845,15 @@ Java_swisseph_SwephExp_swe_1julday(JNIEnv *env, jclass swephexp,
 JNIEXPORT void JNICALL
 Java_swisseph_SwephExp_swe_1revjul(JNIEnv *env, jclass swephexp, jdouble jd,
                                    jint gregflag, jintArray ymdArray, jdoubleArray utimeArray) {
-    int ymd[3];
+    int ymd[3] = {0, 0, 0};
+    double utimeLocal = 0;
     GET_INT_ARRAY_ELEMENTS(isIntCopy, ymdArray, ymdOut)
     GET_DOUBLE_ARRAY_ELEMENTS(isDblCopy, utimeArray, utime)
 
-    swe_revjul(jd, gregflag, &ymd[0], &ymd[1], &ymd[2], utime);
+    swe_revjul(jd, gregflag, &ymd[0], &ymd[1], &ymd[2], &utimeLocal);
 
-    ymdOut[0] = ymd[0];
-    ymdOut[1] = ymd[1];
-    ymdOut[2] = ymd[2];
+    SET_INT_ARRAY_ELEMENTS(ymdArray, ymdOut, ymd, 3)
+    SET_DBL_ARRAY_ELEMENTS(utimeArray, utime, &utimeLocal, 1)
 
     RLZ_DOUBLE_ARRAY_ELEMENTS_OK(isDblCopy, utimeArray, utime)
     RLZ_INT_ARRAY_ELEMENTS_OK(isIntCopy, ymdArray, ymdOut)
@@ -847,15 +891,13 @@ Java_swisseph_SwephExp_swe_1jdet_1to_1utc(JNIEnv *env, jclass swephexp,
     GET_INT_ARRAY_ELEMENTS(isIntCopy, ymdhmArray, ymdhmOut)
     GET_DOUBLE_ARRAY_ELEMENTS(isDblCopy, dsecArray, dsecOut)
 
-    int32 ymdhm[5];
+    int32 ymdhm[5] = {0, 0, 0, 0, 0};
+    double dsec = 0;
     swe_jdet_to_utc(tjd_et, gregflag, &ymdhm[0], &ymdhm[1],
-                    &ymdhm[2], &ymdhm[3], &ymdhm[4], dsecOut);
+                    &ymdhm[2], &ymdhm[3], &ymdhm[4], &dsec);
 
-    ymdhmOut[0] = ymdhm[0];
-    ymdhmOut[1] = ymdhm[1];
-    ymdhmOut[2] = ymdhm[2];
-    ymdhmOut[3] = ymdhm[3];
-    ymdhmOut[4] = ymdhm[4];
+    SET_INT_ARRAY_ELEMENTS(ymdhmArray, ymdhmOut, ymdhm, 5)
+    SET_DBL_ARRAY_ELEMENTS(dsecArray, dsecOut, &dsec, 1)
 
     RLZ_INT_ARRAY_ELEMENTS_OK(isIntCopy, ymdhmArray, ymdhmOut)
     RLZ_DOUBLE_ARRAY_ELEMENTS_OK(isDblCopy, dsecArray, dsecOut)
@@ -873,15 +915,13 @@ Java_swisseph_SwephExp_swe_1jdut1_1to_1utc(JNIEnv *env, jclass swephexp,
     GET_INT_ARRAY_ELEMENTS(isIntCopy, ymdhmArray, ymdhmOut)
     GET_DOUBLE_ARRAY_ELEMENTS(isDblCopy, dsecArray, dsecOut)
 
-    int32 ymdhm[5];
+    int32 ymdhm[5] = {0, 0, 0, 0, 0};
+    double dsec = 0;
     swe_jdut1_to_utc(tjd_ut, gregflag, &ymdhm[0], &ymdhm[1],
-                     &ymdhm[2], &ymdhm[3], &ymdhm[4], dsecOut);
+                     &ymdhm[2], &ymdhm[3], &ymdhm[4], &dsec);
 
-    ymdhmOut[0] = ymdhm[0];
-    ymdhmOut[1] = ymdhm[1];
-    ymdhmOut[2] = ymdhm[2];
-    ymdhmOut[3] = ymdhm[3];
-    ymdhmOut[4] = ymdhm[4];
+    SET_INT_ARRAY_ELEMENTS(ymdhmArray, ymdhmOut, ymdhm, 5)
+    SET_DBL_ARRAY_ELEMENTS(dsecArray, dsecOut, &dsec, 1)
 
     RLZ_INT_ARRAY_ELEMENTS_OK(isIntCopy, ymdhmArray, ymdhmOut)
     RLZ_DOUBLE_ARRAY_ELEMENTS_OK(isDblCopy, dsecArray, dsecOut)
@@ -899,15 +939,13 @@ Java_swisseph_SwephExp_swe_1utc_1time_1zone(JNIEnv *env, jclass swephexp, jint i
     GET_INT_ARRAY_ELEMENTS(isIntCopy, ymdhmArray, ymdhmOut)
     GET_DOUBLE_ARRAY_ELEMENTS(isDblCopy, dsecArray, dsecOut)
 
-    int32 ymdhm[5];
+    int32 ymdhm[5] = {0, 0, 0, 0, 0};
+    double dsecOutLocal = 0;
     swe_utc_time_zone(iyear, imonth, iday, ihour, imin, dsec, d_timezone, &ymdhm[0],
-                      &ymdhm[1], &ymdhm[2], &ymdhm[3], &ymdhm[4], dsecOut);
+                      &ymdhm[1], &ymdhm[2], &ymdhm[3], &ymdhm[4], &dsecOutLocal);
 
-    ymdhmOut[0] = ymdhm[0];
-    ymdhmOut[1] = ymdhm[1];
-    ymdhmOut[2] = ymdhm[2];
-    ymdhmOut[3] = ymdhm[3];
-    ymdhmOut[4] = ymdhm[4];
+    SET_INT_ARRAY_ELEMENTS(ymdhmArray, ymdhmOut, ymdhm, 5)
+    SET_DBL_ARRAY_ELEMENTS(dsecArray, dsecOut, &dsecOutLocal, 1)
 
     RLZ_INT_ARRAY_ELEMENTS_OK(isIntCopy, ymdhmArray, ymdhmOut)
     RLZ_DOUBLE_ARRAY_ELEMENTS_OK(isDblCopy, dsecArray, dsecOut)
@@ -1896,16 +1934,14 @@ Java_swisseph_SwephExp_swe_1split_1deg(JNIEnv *env, jclass swephexp, jdouble dde
     GET_INT_ARRAY_ELEMENTS(isInt2Copy, iSgnArray, sgnOut)
     GET_DOUBLE_ARRAY_ELEMENTS(isDblCopy, dSfrArray, sfrOut)
 
-    int32 dmss[4];
-    double scfr[1];
+    int32 dmss[4] = {0, 0, 0, 0};
+    double scfr[1] = {0};
 
     swe_split_deg(ddeg, roundflag, &dmss[0], &dmss[1], &dmss[2], &scfr[0], &dmss[3]);
 
-    dmsOut[0] = dmss[0];
-    dmsOut[1] = dmss[1];
-    dmsOut[2] = dmss[2];
-    sgnOut[0] = dmss[3];
-    sfrOut[0] = scfr[0];
+    SET_INT_ARRAY_ELEMENTS(iDmsArray, dmsOut, dmss, 3)
+    SET_INT_ARRAY_ELEMENTS(iSgnArray, sgnOut, &dmss[3], 1)
+    SET_DBL_ARRAY_ELEMENTS(dSfrArray, sfrOut, scfr, 1)
 
     RLZ_INT_ARRAY_ELEMENTS_OK(isInt1Copy, iDmsArray, dmsOut)
     RLZ_INT_ARRAY_ELEMENTS_OK(isInt2Copy, iSgnArray, sgnOut)
@@ -1917,6 +1953,7 @@ Java_swisseph_SwephExp_swe_1split_1deg(JNIEnv *env, jclass swephexp, jdouble dde
  *
  * Class:     swisseph_SwephExp
  * Method:    swe_solcross
+ * Signature: (DDILjava/lang/StringBuilder;)D
  */
 JNIEXPORT jdouble JNICALL
 Java_swisseph_SwephExp_swe_1solcross(JNIEnv *env, jclass swephexp, jdouble x2cross, jdouble jd_et, jint flag, jobject errBuilder) {
@@ -1933,6 +1970,7 @@ Java_swisseph_SwephExp_swe_1solcross(JNIEnv *env, jclass swephexp, jdouble x2cro
  *
  * Class:     swisseph_SwephExp
  * Method:    swe_solcross_ut
+ * Signature: (DDILjava/lang/StringBuilder;)D
  */
 JNIEXPORT jdouble JNICALL
 Java_swisseph_SwephExp_swe_1solcross_1ut(JNIEnv *env, jclass swephexp, jdouble x2cross, jdouble jd_ut, jint flag, jobject errBuilder) {
@@ -1949,6 +1987,7 @@ Java_swisseph_SwephExp_swe_1solcross_1ut(JNIEnv *env, jclass swephexp, jdouble x
  *
  * Class:     swisseph_SwephExp
  * Method:    swe_mooncross
+ * Signature: (DDILjava/lang/StringBuilder;)D
  */
 JNIEXPORT jdouble JNICALL
 Java_swisseph_SwephExp_swe_1mooncross(JNIEnv *env, jclass swephexp, jdouble x2cross, jdouble jd_et, jint flag, jobject errBuilder) {
@@ -1965,6 +2004,7 @@ Java_swisseph_SwephExp_swe_1mooncross(JNIEnv *env, jclass swephexp, jdouble x2cr
  *
  * Class:     swisseph_SwephExp
  * Method:    swe_mooncross_ut
+ * Signature: (DDILjava/lang/StringBuilder;)D
  */
 JNIEXPORT jdouble JNICALL
 Java_swisseph_SwephExp_swe_1mooncross_1ut(JNIEnv *env, jclass swephexp, jdouble x2cross, jdouble jd_ut, jint flag, jobject errBuilder) {
@@ -1981,6 +2021,7 @@ Java_swisseph_SwephExp_swe_1mooncross_1ut(JNIEnv *env, jclass swephexp, jdouble 
  *
  * Class:     swisseph_SwephExp
  * Method:    swe_mooncross_node
+ * Signature: (DI[D[DLjava/lang/StringBuilder;)D
  */
 JNIEXPORT jdouble JNICALL
 Java_swisseph_SwephExp_swe_1mooncross_1node(JNIEnv *env, jclass swephexp, jdouble jd_et, jint flag,
@@ -2002,6 +2043,7 @@ Java_swisseph_SwephExp_swe_1mooncross_1node(JNIEnv *env, jclass swephexp, jdoubl
  *
  * Class:     swisseph_SwephExp
  * Method:    swe_mooncross_node_ut
+ * Signature: (DI[D[DLjava/lang/StringBuilder;)D
  */
 JNIEXPORT jdouble JNICALL
 Java_swisseph_SwephExp_swe_1mooncross_1node_1ut(JNIEnv *env, jclass swephexp, jdouble jd_ut, jint flag,
@@ -2023,6 +2065,7 @@ Java_swisseph_SwephExp_swe_1mooncross_1node_1ut(JNIEnv *env, jclass swephexp, jd
  *
  * Class:     swisseph_SwephExp
  * Method:    swe_helio_cross
+ * Signature: (IDDII[DLjava/lang/StringBuilder;)I
  */
 JNIEXPORT jint JNICALL
 Java_swisseph_SwephExp_swe_1helio_1cross(JNIEnv *env, jclass swephexp, jint ipl, jdouble x2cross, jdouble jd_et,
@@ -2042,6 +2085,7 @@ Java_swisseph_SwephExp_swe_1helio_1cross(JNIEnv *env, jclass swephexp, jint ipl,
  *
  * Class:     swisseph_SwephExp
  * Method:    swe_helio_cross_ut
+ * Signature: (IDDII[DLjava/lang/StringBuilder;)I
  */
 JNIEXPORT jint JNICALL
 Java_swisseph_SwephExp_swe_1helio_1cross_1ut(JNIEnv *env, jclass swephexp, jint ipl, jdouble x2cross, jdouble jd_ut,
@@ -2054,4 +2098,167 @@ Java_swisseph_SwephExp_swe_1helio_1cross_1ut(JNIEnv *env, jclass swephexp, jint 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy1, jdCrossArray, jd_cross)
     ERR_BUILDER_APPEND_IF_SERR
     return retc;
+}
+
+/*
+ * ============================================================================
+ * Normalisation, rounding and formatting helpers (swephlib.c).
+ * A `centisec` is an int32 holding 1/100 of an arc second (or of a second of
+ * time), so all of these map onto Java int.
+ * ============================================================================
+ */
+
+/*
+ * centisec swe_csnorm(centisec p)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_csnorm
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL
+Java_swisseph_SwephExp_swe_1csnorm(JNIEnv *env, jclass swephexp, jint p) {
+    return swe_csnorm(p);
+}
+
+/*
+ * centisec swe_difcsn(centisec p1, centisec p2)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_difcsn
+ * Signature: (II)I
+ */
+JNIEXPORT jint JNICALL
+Java_swisseph_SwephExp_swe_1difcsn(JNIEnv *env, jclass swephexp, jint p1, jint p2) {
+    return swe_difcsn(p1, p2);
+}
+
+/*
+ * double swe_difdegn(double p1, double p2)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_difdegn
+ * Signature: (DD)D
+ */
+JNIEXPORT jdouble JNICALL
+Java_swisseph_SwephExp_swe_1difdegn(JNIEnv *env, jclass swephexp, jdouble p1, jdouble p2) {
+    return swe_difdegn(p1, p2);
+}
+
+/*
+ * centisec swe_difcs2n(centisec p1, centisec p2)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_difcs2n
+ * Signature: (II)I
+ */
+JNIEXPORT jint JNICALL
+Java_swisseph_SwephExp_swe_1difcs2n(JNIEnv *env, jclass swephexp, jint p1, jint p2) {
+    return swe_difcs2n(p1, p2);
+}
+
+/*
+ * double swe_difdeg2n(double p1, double p2)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_difdeg2n
+ * Signature: (DD)D
+ */
+JNIEXPORT jdouble JNICALL
+Java_swisseph_SwephExp_swe_1difdeg2n(JNIEnv *env, jclass swephexp, jdouble p1, jdouble p2) {
+    return swe_difdeg2n(p1, p2);
+}
+
+/*
+ * double swe_difrad2n(double p1, double p2)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_difrad2n
+ * Signature: (DD)D
+ */
+JNIEXPORT jdouble JNICALL
+Java_swisseph_SwephExp_swe_1difrad2n(JNIEnv *env, jclass swephexp, jdouble p1, jdouble p2) {
+    return swe_difrad2n(p1, p2);
+}
+
+/*
+ * centisec swe_csroundsec(centisec x)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_csroundsec
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL
+Java_swisseph_SwephExp_swe_1csroundsec(JNIEnv *env, jclass swephexp, jint x) {
+    return swe_csroundsec(x);
+}
+
+/*
+ * int32 swe_d2l(double x)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_d2l
+ * Signature: (D)I
+ */
+JNIEXPORT jint JNICALL
+Java_swisseph_SwephExp_swe_1d2l(JNIEnv *env, jclass swephexp, jdouble x) {
+    return swe_d2l(x);
+}
+
+/*
+ * int swe_day_of_week(double jd)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_day_of_week
+ * Signature: (D)I
+ */
+JNIEXPORT jint JNICALL
+Java_swisseph_SwephExp_swe_1day_1of_1week(JNIEnv *env, jclass swephexp, jdouble jd) {
+    return swe_day_of_week(jd);
+}
+
+/*
+ * char *swe_cs2timestr(CSEC t, int sep, AS_BOOL suppressZero, char *a)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_cs2timestr
+ * Signature: (ICZ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL
+Java_swisseph_SwephExp_swe_1cs2timestr(JNIEnv *env, jclass swephexp, jint t,
+                                       jchar sep, jboolean suppressZero) {
+    char a[AS_MAXCH];
+    *a = '\0';
+    const char *str = swe_cs2timestr(t, (int) sep, JNI_TRUE == suppressZero, a);
+    return (*env)->NewStringUTF(env, NULL != str ? str : a);
+}
+
+/*
+ * char *swe_cs2lonlatstr(CSEC t, char pchar, char mchar, char *s)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_cs2lonlatstr
+ * Signature: (ICC)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL
+Java_swisseph_SwephExp_swe_1cs2lonlatstr(JNIEnv *env, jclass swephexp, jint t,
+                                         jchar pchar, jchar mchar) {
+    char s[AS_MAXCH];
+    *s = '\0';
+    const char *str = swe_cs2lonlatstr(t, (char) pchar, (char) mchar, s);
+    return (*env)->NewStringUTF(env, NULL != str ? str : s);
+}
+
+/*
+ * char *swe_cs2degstr(CSEC t, char *a)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_cs2degstr
+ * Signature: (I)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL
+Java_swisseph_SwephExp_swe_1cs2degstr(JNIEnv *env, jclass swephexp, jint t) {
+    char a[AS_MAXCH];
+    *a = '\0';
+    const char *str = swe_cs2degstr(t, a);
+    return (*env)->NewStringUTF(env, NULL != str ? str : a);
 }

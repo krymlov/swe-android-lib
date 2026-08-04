@@ -18,7 +18,7 @@ JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1heliacal_1ut
 /*
  * Class:     swisseph_SwephExp
  * Method:    swe_heliacal_pheno_ut
- * Signature: (D[D[D[DLjava/lang/StringBuilder;II[DLjava/lang/StringBuilder;)I
+ * Signature: (D[D[D[DLjava/lang/String;II[DLjava/lang/StringBuilder;)I
  */
 JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1heliacal_1pheno_1ut
   (JNIEnv *, jclass, jdouble, jdoubleArray, jdoubleArray, jdoubleArray, jstring, jint, jint, jdoubleArray, jobject);
@@ -698,6 +698,7 @@ JNIEXPORT void JNICALL Java_swisseph_SwephExp_swe_1split_1deg
 /*
  * Class:     swisseph_SwephExp
  * Method:    swe_solcross
+ * Signature: (DDILjava/lang/StringBuilder;)D
  */
 JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1solcross
     (JNIEnv *, jclass, jdouble, jdouble, jint, jobject);
@@ -705,6 +706,7 @@ JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1solcross
 /*
  * Class:     swisseph_SwephExp
  * Method:    swe_solcross_ut
+ * Signature: (DDILjava/lang/StringBuilder;)D
  */
 JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1solcross_1ut
     (JNIEnv *, jclass, jdouble, jdouble, jint, jobject);
@@ -712,6 +714,7 @@ JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1solcross_1ut
 /*
  * Class:     swisseph_SwephExp
  * Method:    swe_mooncross
+ * Signature: (DDILjava/lang/StringBuilder;)D
  */
 JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1mooncross
     (JNIEnv *, jclass, jdouble, jdouble, jint, jobject);
@@ -719,6 +722,7 @@ JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1mooncross
 /*
  * Class:     swisseph_SwephExp
  * Method:    swe_mooncross_ut
+ * Signature: (DDILjava/lang/StringBuilder;)D
  */
 JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1mooncross_1ut
     (JNIEnv *, jclass, jdouble, jdouble, jint, jobject);
@@ -726,6 +730,7 @@ JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1mooncross_1ut
 /*
  * Class:     swisseph_SwephExp
  * Method:    swe_mooncross_node
+ * Signature: (DI[D[DLjava/lang/StringBuilder;)D
  */
 JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1mooncross_1node
     (JNIEnv *, jclass, jdouble, jint, jdoubleArray, jdoubleArray, jobject);
@@ -733,6 +738,7 @@ JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1mooncross_1node
 /*
  * Class:     swisseph_SwephExp
  * Method:    swe_mooncross_node_ut
+ * Signature: (DI[D[DLjava/lang/StringBuilder;)D
  */
 JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1mooncross_1node_1ut
     (JNIEnv *, jclass, jdouble, jint, jdoubleArray, jdoubleArray, jobject);
@@ -740,6 +746,7 @@ JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1mooncross_1node_1ut
 /*
  * Class:     swisseph_SwephExp
  * Method:    swe_helio_cross
+ * Signature: (IDDII[DLjava/lang/StringBuilder;)I
  */
 JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1helio_1cross
     (JNIEnv *, jclass, jint, jdouble, jdouble, jint, jint, jdoubleArray, jobject);
@@ -747,9 +754,106 @@ JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1helio_1cross
 /*
  * Class:     swisseph_SwephExp
  * Method:    swe_helio_cross_ut
+ * Signature: (IDDII[DLjava/lang/StringBuilder;)I
  */
 JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1helio_1cross_1ut
     (JNIEnv *, jclass, jint, jdouble, jdouble, jint, jint, jdoubleArray, jobject);
+
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_csnorm
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1csnorm
+    (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_difcsn
+ * Signature: (II)I
+ */
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1difcsn
+    (JNIEnv *, jclass, jint, jint);
+
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_difdegn
+ * Signature: (DD)D
+ */
+JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1difdegn
+    (JNIEnv *, jclass, jdouble, jdouble);
+
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_difcs2n
+ * Signature: (II)I
+ */
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1difcs2n
+    (JNIEnv *, jclass, jint, jint);
+
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_difdeg2n
+ * Signature: (DD)D
+ */
+JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1difdeg2n
+    (JNIEnv *, jclass, jdouble, jdouble);
+
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_difrad2n
+ * Signature: (DD)D
+ */
+JNIEXPORT jdouble JNICALL Java_swisseph_SwephExp_swe_1difrad2n
+    (JNIEnv *, jclass, jdouble, jdouble);
+
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_csroundsec
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1csroundsec
+    (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_d2l
+ * Signature: (D)I
+ */
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1d2l
+    (JNIEnv *, jclass, jdouble);
+
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_day_of_week
+ * Signature: (D)I
+ */
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1day_1of_1week
+    (JNIEnv *, jclass, jdouble);
+
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_cs2timestr
+ * Signature: (ICZ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_swisseph_SwephExp_swe_1cs2timestr
+    (JNIEnv *, jclass, jint, jchar, jboolean);
+
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_cs2lonlatstr
+ * Signature: (ICC)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_swisseph_SwephExp_swe_1cs2lonlatstr
+    (JNIEnv *, jclass, jint, jchar, jchar);
+
+/*
+ * Class:     swisseph_SwephExp
+ * Method:    swe_cs2degstr
+ * Signature: (I)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_swisseph_SwephExp_swe_1cs2degstr
+    (JNIEnv *, jclass, jint);
 
 #ifdef __cplusplus
 }
