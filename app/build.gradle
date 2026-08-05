@@ -9,7 +9,7 @@ android {
         minSdk 21
         targetSdk 36
         versionCode 37
-        versionName "2.10.03j7d"
+        versionName "2.10.03j6f"
     }
 
     buildTypes {
