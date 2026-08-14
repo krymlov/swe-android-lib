@@ -69,6 +69,18 @@
         CHARS[AS_MAXCH - 1] = '\0';                              \
     }
 
+/* Same as CPY_CSTRING_TO_CHARS but with a caller-chosen buffer size, for the
+ * rare out-parameter that does not fit in AS_MAXCH - swe_get_astro_models()
+ * writes several hundred bytes even in its default case, and swetest.c (the
+ * only upstream caller) sizes its own buffer at 2000 bytes, not AS_MAXCH. */
+#define CPY_CSTRING_TO_CHARS_SIZED(CCSTRING, CHARS, SIZE)        \
+    char CHARS[SIZE];                                            \
+    if (NULL == CCSTRING) *CHARS = '\0';                         \
+    else {                                                       \
+        strncpy(CHARS, CCSTRING, (SIZE) - 1);                    \
+        CHARS[(SIZE) - 1] = '\0';                                \
+    }
+
 /* Length-aware writeback for the fixed-size int/double out-parameters.
  * Guards against a null array reference and against a Java array that is
  * shorter than the number of values swisseph produced. */
@@ -371,7 +383,11 @@ Java_swisseph_SwephExp_swe_1get_1astro_1models(JNIEnv *env, jclass swephexp,
 
     jstring sdetObject = getBuilderString(env, sdetBuilder);
     GET_STRING_UTF_CHARS(isCopy2, sdetObject, sdetobject)
-    CPY_CSTRING_TO_CHARS(sdetobject, sdet_object)
+    /* AS_MAXCH (256) is not enough here - swephlib.c's swe_get_astro_models()
+     * sprintf()s/strcat()s the JPL/tidal line plus one line per model group into
+     * sdet unconditionally, already ~500 bytes before "list all models" (samod
+     * containing '+') multiplies it further; swetest.c itself uses smod[2000]. */
+    CPY_CSTRING_TO_CHARS_SIZED(sdetobject, sdet_object, 4096)
 
     swe_get_astro_models(samod_object, sdet_object, iflag);
 
