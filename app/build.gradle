@@ -1,5 +1,7 @@
-apply plugin: 'com.android.library'
-apply plugin: 'maven-publish'
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+}
 
 android {
     namespace 'org.swisseph'
@@ -10,6 +12,13 @@ android {
         targetSdk 36
         versionCode 37
         versionName "2.10.03j6f"
+    }
+
+    // Optimize for Release-only builds: disable debug variant to speed up sync and build
+    androidComponents {
+        beforeVariants(selector().withBuildType("debug")) { variantBuilder ->
+            variantBuilder.enable = false
+        }
     }
 
     buildTypes {
