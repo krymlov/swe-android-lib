@@ -14,17 +14,38 @@ android {
         versionName "2.10.03j6f"
     }
 
-    // Optimize for Release-only builds: disable debug variant to speed up sync and build
-    androidComponents {
-        beforeVariants(selector().withBuildType("debug")) { variantBuilder ->
-            variantBuilder.enable = false
-        }
+    buildFeatures {
+        viewBinding = false
+        dataBinding = false
+        renderScript false
+        buildConfig false
+        resValues false
+        shaders false
+        aidl false
     }
 
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+        }
+    }
+}
+
+androidComponents {
+    beforeVariants(selector().withBuildType("debug")) { variant ->
+        variant.enable = false
+    }
+}
+
+android {
     buildTypes {
         release {
+            isDefault = true
             debuggable false
             minifyEnabled false
+            zipAlignEnabled true
+            // Optimization: ignore system-wide ProGuard files if not minifying
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 
@@ -32,19 +53,48 @@ android {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+
+    packagingOptions {
+        resources {
+            excludes += [
+                    "META-INF/LICENSE*",
+                    "META-INF/NOTICE*",
+                    "META-INF/AL2.0",
+                    "META-INF/LGPL2.1",
+                    "META-INF/*.kotlin_module"
+            ]
+        }
+    }
+
+    lint {
+        quiet true
+        abortOnError true
+        ignoreWarnings true
+        checkTestSources true
+        checkDependencies true
+        checkReleaseBuilds true
+    }
+
+    testOptions {
+        unitTests.all {
+            enabled = false
+        }
+    }
 }
 
 dependencies {
+    // No source code dependencies required for pure resource module
 }
 
-afterEvaluate {
-    publishing {
-        publications {
-            release(MavenPublication) {
-                groupId 'swisseph'
-                artifactId 'swe-android'
-                version android.defaultConfig.versionName
-                artifact(bundleReleaseAar)
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId 'swisseph'
+            artifactId 'swe-android'
+            version android.defaultConfig.versionName
+
+            afterEvaluate {
+                from components.release
             }
         }
     }
