@@ -15,8 +15,8 @@ android {
     }
 
     buildFeatures {
-        viewBinding = false
-        dataBinding = false
+        viewBinding false
+        dataBinding false
         renderScript false
         buildConfig false
         resValues false
@@ -54,7 +54,7 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    packagingOptions {
+    packaging {
         resources {
             excludes += [
                     "META-INF/LICENSE*",
@@ -69,7 +69,7 @@ android {
     lint {
         quiet true
         abortOnError true
-        ignoreWarnings true
+        ignoreWarnings false
         checkTestSources true
         checkDependencies true
         checkReleaseBuilds true
