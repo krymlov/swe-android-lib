@@ -4,9 +4,9 @@ plugins {
 }
 
 allprojects {
-    buildDir = "${System.getProperty("java.io.tmpdir")}/apps-aars/${rootProject.name}/${project.name}"
+    layout.buildDirectory.set(file("${System.getProperty("java.io.tmpdir")}/apps-aars/${rootProject.name}/${project.name}"))
 }
 
 task clean(type: Delete) {
-    delete layout.buildDirectory
+    delete rootProject.layout.buildDirectory
 }

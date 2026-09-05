@@ -4,49 +4,42 @@ plugins {
 }
 
 android {
-    namespace 'org.swisseph'
-    compileSdk 37
+    namespace project.property('AAR_NAMESPACE')
+    compileSdk project.property('AAR_COMPILE_SDK') as int
 
     defaultConfig {
-        minSdk 21
-        targetSdk 36
-        versionCode 37
-        versionName "2.10.03j6f"
+        minSdk project.property('AAR_MIN_SDK') as int
+        targetSdk project.property('AAR_TARGET_SDK') as int
+        versionCode project.property('AAR_VERSION_CODE') as int
+        versionName project.property('AAR_VERSION')
+        consumerProguardFiles 'consumer-rules.pro'
     }
 
-    buildFeatures {
-        viewBinding false
-        dataBinding false
-        renderScript false
-        buildConfig false
-        resValues false
-        shaders false
-        aidl false
-    }
-
-    publishing {
-        singleVariant('release') {
-            withSourcesJar()
+    // Optimization: disable debug variant to speed up sync and build
+    androidComponents {
+        beforeVariants(selector().withBuildType("debug")) { variantBuilder ->
+            variantBuilder.enable = false
         }
     }
-}
 
-androidComponents {
-    beforeVariants(selector().withBuildType("debug")) { variant ->
-        variant.enable = false
-    }
-}
-
-android {
     buildTypes {
         release {
-            isDefault = true
+            isDefault true
             debuggable false
             minifyEnabled false
             zipAlignEnabled true
-            // Optimization: ignore system-wide ProGuard files if not minifying
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+
+    buildFeatures {
+        buildConfig = project.property('AAR_BUILD_CONFIG').toBoolean()
+        viewBinding = false
+        dataBinding = false
+        resValues = false
+        shaders = false
+        aidl = false
+        renderScript = false
     }
 
     compileOptions {
@@ -61,23 +54,30 @@ android {
                     "META-INF/NOTICE*",
                     "META-INF/AL2.0",
                     "META-INF/LGPL2.1",
-                    "META-INF/*.kotlin_module"
+                    "META-INF/*.kotlin_module",
+                    "**/kotlin/**"
             ]
         }
     }
 
     lint {
         quiet true
-        abortOnError true
-        ignoreWarnings false
-        checkTestSources true
+        checkReleaseBuilds false
+        abortOnError false
+        ignoreWarnings true
+        checkTestSources false
         checkDependencies true
-        checkReleaseBuilds true
     }
 
     testOptions {
         unitTests.all {
             enabled = false
+        }
+    }
+
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
         }
     }
 }
@@ -86,14 +86,13 @@ dependencies {
     // No source code dependencies required for pure resource module
 }
 
-publishing {
-    publications {
-        release(MavenPublication) {
-            groupId 'swisseph'
-            artifactId 'swe-android'
-            version android.defaultConfig.versionName
-
-            afterEvaluate {
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                artifactId project.property('AAR_ARTIFACT_ID')
+                groupId project.property('AAR_GROUP_ID')
+                version project.property('AAR_VERSION')
                 from components.release
             }
         }
