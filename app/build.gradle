@@ -34,7 +34,7 @@ android {
 
     buildFeatures {
         buildConfig = project.property('AAR_BUILD_CONFIG').toBoolean()
-        viewBinding = false
+        viewBinding = project.property('AAR_VIEW_BINDING').toBoolean()
         dataBinding = false
         resValues = false
         shaders = false
