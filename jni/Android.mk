@@ -30,7 +30,7 @@ LOCAL_MODULE := swe-2.10.03j6f
 # JNIEXPORT ones do. Result: exactly the 106 JNI entry points are exported (verified per ABI by
 # tools/verify-contract.sh).
 LOCAL_CFLAGS    += -O2
-LOCAL_CFLAGS    += -ffunction-sections -fdata-sections -fvisibility=hidden -Wall -Wno-error=implicit-function-declaration
+LOCAL_CFLAGS    += -ffunction-sections -fdata-sections -fvisibility=hidden -Wall
 
 # -z max-page-size=16384: required for Android 15+, which can run with 16 KB memory pages.
 # A library linked for 4 KB pages fails to load there.
