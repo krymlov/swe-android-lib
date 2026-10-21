@@ -223,6 +223,7 @@ static int app_pos_rest(struct plan_data *pdp, int32 iflag,
     double *xx, double *x2000, struct epsilon *oe, char *serr);
 static int open_jpl_file(double *ss, char *fname, char *fpath, char *serr);
 static void free_planets(void);
+static void gen_filename_range(double tjd, int ipli, double *tnom0, double *tnom1);
 
 #ifdef TRACE
 static void trace_swe_calc(int param, double tjd, int ipl, int32 iflag, double *xx, char *serr);
@@ -236,6 +237,12 @@ char *CALL_CONV swe_version(char *s)
   strcpy(s, SE_VERSION);
   return s;
 }
+
+int32 CALL_CONV swe_get_denum(void)
+{
+  return swi_get_denum(SEI_SUN, 0);
+}
+
 
 #ifndef NO_SWE_GLP	// -DNO_SWE_GLP to suppress this function
 #if MSDOS
@@ -1153,6 +1160,35 @@ static int32 swecalc(double tjd, int ipl, int32 iplmoon, int32 iflag, double *x,
   for (i = 0; i < 24; i++)
     x[i] = 0;
   return ERR;
+}
+
+/* nominal range of the ephemeris file that swi_gen_filename() names for
+ * tjd and ipli: the dates [*tnom0, *tnom1) for which it names the same file.
+ * planet, moon and main asteroid files cover NCTIES centuries each and
+ * overlap their neighbours by some days; the other files cover all dates.
+ * the century rule must be the same as in swi_gen_filename(). */
+static void gen_filename_range(double tjd, int ipli, double *tnom0, double *tnom1)
+{
+  int icty, y0, y1;
+  int ncties = (int) NCTIES;
+  int jmon, jday, jyear;
+  double jut;
+  if (ipli < 0 || ipli >= SEI_NPLANETS || ipli == SEI_ANYBODY) {
+    *tnom0 = -1e30;
+    *tnom1 = 1e30;
+    return;
+  }
+  swe_revjul(tjd, tjd >= 2305447.5, &jyear, &jmon, &jday, &jut);
+  icty = jyear / 100;
+  if (jyear < 0 && jyear % 100 != 0)
+    icty -= 1;
+  while (icty % ncties != 0)
+    icty--;
+  y0 = icty * 100;
+  y1 = y0 + ncties * 100;
+  /* swi_gen_filename() uses the gregorian calendar from 1600 on */
+  *tnom0 = swe_julday(y0, 1, 1, 0, y0 >= 1600);
+  *tnom1 = swe_julday(y1, 1, 1, 0, y1 >= 1600);
 }
 
 static void free_planets(void)
@@ -2163,9 +2199,13 @@ static int sweph(double tjd, int ipli, int ifno, int32 iflag, double *xsunb, AS_
    ******************************/
   if (fdp->fptr != NULL) {
     /* if tjd is beyond file range, close old file.
-     * if new asteroid, close old file. */
+     * if new asteroid, close old file.
+     * if tjd is beyond the file's nominal range (in the overlap with the
+     * neighbouring file), close it too: otherwise the file used in the
+     * overlap would depend on the order of earlier calls. */
     if (tjd < fdp->tfstart || tjd > fdp->tfend
-      || (ipl == SEI_ANYBODY && ipli != pdp->ibdy)) { 	
+      || tjd < fdp->tnom0 || tjd >= fdp->tnom1
+      || (ipl == SEI_ANYBODY && ipli != pdp->ibdy)) {
       fclose(fdp->fptr);
       fdp->fptr = NULL;
       if (pdp->refep != NULL) 
@@ -2224,10 +2264,11 @@ again:
       return(NOT_AVAILABLE);
     }
     /* during the search error messages may have been built, delete them */
-    if (serr != NULL) *serr = '\0';	
+    if (serr != NULL) *serr = '\0';
     retc = read_const(ifno, serr);
     if (retc != OK)
       return(retc);
+    gen_filename_range(tjd, ipli, &fdp->tnom0, &fdp->tnom1);
   }
   /* if first ephemeris file (J-3000), it might start a mars period
    * after -3000. if last ephemeris file (J3000), it might end a
@@ -4850,6 +4891,16 @@ fendian, ifno, serr);
     pdp->dqrot    = doubles[7];
     pdp->peri     = doubles[8];
     pdp->dperi    = doubles[9];
+    /* a segment still held from the previous file of this planet is not
+     * valid any more: its tseg0/tseg1 may still contain the next dates, and
+     * then it would be used instead of the new file; also, the new file may
+     * have another ncoe. This applies to all planets of the file, not only
+     * to the planet that caused the switch and not only to planets with a
+     * reference ellipse. */
+    if (pdp->segp != NULL) {
+      free((void *) pdp->segp);
+      pdp->segp = NULL;
+    }
     /* alloc space for chebyshew coefficients */
     /* if reference ellipse is used, read its coefficients */
     if (pdp->iflg & SEI_FLG_ELLIPSE) {

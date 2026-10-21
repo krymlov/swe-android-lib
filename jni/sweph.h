@@ -714,6 +714,8 @@ struct file_data {
   FILE *fptr;		/* ephemeris file pointer */
   double tfstart;       /* file may be used from this date */
   double tfend;         /*      through this date          */
+  double tnom0;         /* nominal range: dates for which swi_gen_filename() */
+  double tnom1;         /* names this file, [tnom0, tnom1) */
   int32 iflg; 		/* byte reorder flag and little/bigendian flag */
   short npl;		/* how many planets in file */
   int ipl[SEI_FILE_NMAXPLAN];	/* planet numbers */
