@@ -20,7 +20,7 @@ AAR з нативною Swiss Ephemeris 2.10.03 (модуль `swe-2.10.03j6f`, 
 * TLS-виправлення для MinGW (`sweodef.h`) тут не потрібне: NDK clang не визначає ні `WIN32`, ні
   `__MINGW32__`, тож TLS — `__thread`.
 
-## Не закомічено (21.10)
+## Опції збірки (21.10, коміт `42c9db6`)
 
 * `jni/Application.mk`: `APP_PLATFORM := android-24` (було 21). `swejpl.c` вмикає
   `_FILE_OFFSET_BITS 64`, а bionic на 32-бітних ABI оголошує `fseeko`/`ftello` лише з API 24; за
@@ -29,7 +29,7 @@ AAR з нативною Swiss Ephemeris 2.10.03 (модуль `swe-2.10.03j6f`, 
 * `jni/Android.mk`: прибрано `-Wno-error=implicit-function-declaration` (воно цю ваду ховало) і
   `-ffunction-sections -fdata-sections` з `LOCAL_LDFLAGS` (на лінкуванні нічого не дають).
 * `gradle.properties`: `AAR_MIN_SDK=24` — під `APP_PLATFORM`.
-* `.so` перезбирає й комітить користувач. Перевірка компіляції чотирьох ABI —
+* Перевірка компіляції чотирьох ABI —
   `python tools/android/ndk_compile_check.py <swe-android-lib>/jni` у swisseph-2026.
 
 ## Огляд `swejni.c` / `swejni.h` (21.10) — правки ще не внесено
