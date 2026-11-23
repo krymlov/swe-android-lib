@@ -26,8 +26,15 @@
  * CheckJNI, which always copies).
  */
 
+/*
+ * serr goes to Java whenever Swiss Ephemeris wrote something into it, whatever retc says:
+ * swe_calc() and everything built on it report a fallback to Moshier ("... using Moshier eph.")
+ * as a warning with a non-negative retc, exactly as the C API and the pure-Java port do. Until
+ * 2026-11-23 most wrappers appended serr only when retc <= ERR, so through the native engine
+ * that warning never reached the caller. serr is zeroed at declaration, so an empty buffer
+ * means Swiss Ephemeris had nothing to say.
+ */
 #define DEFINE_CHAR_SERR char serr[AS_MAXCH]; *serr = '\0';
-#define ERR_BUILDER_APPEND_IF_ERR if (ERR >= retc && NULL != errBuilder) appendToBuilder(env, serr, errBuilder);
 #define ERR_BUILDER_APPEND_IF_SERR if (*serr != '\0' && NULL != errBuilder) appendToBuilder(env, serr, errBuilder);
 
 #define GET_DOUBLE_ARRAY_ELEMENTS(IS_COPY, JDOUBLE_ARRAY, ELEMENTS)\
@@ -207,7 +214,7 @@ Java_swisseph_SwephExp_swe_1heliacal_1ut(JNIEnv *env, jclass swephexp,
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy3, dobsArray, dobs)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy4, dretArray, dret)
     RLZ_STRING_UTF_CHARS(isCopy, objectName, objName)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -242,7 +249,7 @@ Java_swisseph_SwephExp_swe_1heliacal_1pheno_1ut(JNIEnv *env, jclass swephexp,
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy3, dobsArray, dobs)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy4, darrArray, darr)
     RLZ_STRING_UTF_CHARS(isCopy, objectName, objName)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -278,7 +285,7 @@ Java_swisseph_SwephExp_swe_1vis_1limit_1mag(JNIEnv *env, jclass swephexp,
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy3, dobsArray, dobs)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy4, dretArray, dret)
     RLZ_STRING_UTF_CHARS(isCopy, objectName, objectname)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -310,7 +317,7 @@ Java_swisseph_SwephExp_swe_1heliacal_1angle(JNIEnv *env, jclass swephexp,
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy2, datmArray, datm)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy3, dobsArray, dobs)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy4, dretArray, dret)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -343,7 +350,7 @@ Java_swisseph_SwephExp_swe_1topo_1arcus_1visionis(JNIEnv *env, jclass swephexp,
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy2, datmArray, datm)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy3, dobsArray, dobs)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy4, dretArray, dret)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -412,6 +419,18 @@ Java_swisseph_SwephExp_swe_1version(JNIEnv *env, jclass swephexp) {
 }
 
 /*
+ * int32 swe_get_denum(void)
+ *
+ * Class:     swisseph_SwephExp
+ * Method:    swe_get_denum
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL
+Java_swisseph_SwephExp_swe_1get_1denum(JNIEnv *env, jclass swephexp) {
+    return swe_get_denum();
+}
+
+/*
  * char * swe_get_library_path(char *)
  *
  * Class:     swisseph_SwephExp
@@ -440,7 +459,7 @@ Java_swisseph_SwephExp_swe_1calc(JNIEnv *env, jclass swephexp, jdouble tjd, jint
     int32 retc = swe_calc(tjd, ipl, iflag, xx, serr);
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy, xxArray, xx)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -459,7 +478,7 @@ Java_swisseph_SwephExp_swe_1calc_1ut(JNIEnv *env, jclass swephexp, jdouble tjd_u
     int32 retc = swe_calc_ut(tjd_ut, ipl, iflag, xx, serr);
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy, xxArray, xx)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -479,7 +498,7 @@ Java_swisseph_SwephExp_swe_1calc_1pctr(JNIEnv *env, jclass swephexp, jdouble tjd
     int32 retc = swe_calc_pctr(tjd, ipl, iplctr, iflag, xxret, serr);
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy, xxretArray, xxret)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -506,7 +525,7 @@ Java_swisseph_SwephExp_swe_1fixstar(JNIEnv *env, jclass swephexp, jobject starNa
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isDblCopy, xxArray, xx)
     RLZ_STRING_UTF_CHARS(isCopy, starName, starname)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -533,7 +552,7 @@ Java_swisseph_SwephExp_swe_1fixstar_1ut(JNIEnv *env, jclass swephexp, jobject st
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isDblCopy, xxArray, xx)
     RLZ_STRING_UTF_CHARS(isCopy, starName, starname)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -560,7 +579,7 @@ Java_swisseph_SwephExp_swe_1fixstar_1mag(JNIEnv *env, jclass swephexp, jobject s
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isDblCopy, magArray, mag)
     RLZ_STRING_UTF_CHARS(isCopy, starName, starname)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -587,7 +606,7 @@ Java_swisseph_SwephExp_swe_1fixstar2(JNIEnv *env, jclass swephexp, jobject starN
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isDblCopy, xxArray, xx)
     RLZ_STRING_UTF_CHARS(isCopy, starName, starname)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -614,7 +633,7 @@ Java_swisseph_SwephExp_swe_1fixstar2_1ut(JNIEnv *env, jclass swephexp, jobject s
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isDblCopy, xxArray, xx)
     RLZ_STRING_UTF_CHARS(isCopy, starName, starname)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -641,7 +660,7 @@ Java_swisseph_SwephExp_swe_1fixstar2_1mag(JNIEnv *env, jclass swephexp, jobject 
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isDblCopy, magArray, mag)
     RLZ_STRING_UTF_CHARS(isCopy, starName, starname)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -677,6 +696,14 @@ Java_swisseph_SwephExp_swe_1set_1ephe_1path(JNIEnv *env, jclass swephexp, jstrin
  */
 JNIEXPORT void JNICALL
 Java_swisseph_SwephExp_swe_1set_1jpl_1file(JNIEnv *env, jclass swephexp, jstring jplPath) {
+    /* swe_set_jpl_file() starts with strlen(fname), so NULL would take the whole VM down.
+     * The pure-Java engine throws NullPointerException for null; do the same. */
+    if (NULL == jplPath) {
+        jclass npe = (*env)->FindClass(env, "java/lang/NullPointerException");
+        if (NULL != npe) (*env)->ThrowNew(env, npe, "swe_set_jpl_file: fname is null");
+        return;
+    }
+
     GET_STRING_UTF_CHARS(isCopy, jplPath, jplFile)
     //CPY_CSTRING_TO_CHARS(jplFile, fname) SINCE: 2.10.03
 
@@ -737,7 +764,7 @@ Java_swisseph_SwephExp_swe_1get_1ayanamsa_1ex(JNIEnv *env, jclass swephexp, jdou
     int32 retc = swe_get_ayanamsa_ex(tjd_et, iflag, daya, serr);
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy, dayaArray, daya)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -756,7 +783,7 @@ Java_swisseph_SwephExp_swe_1get_1ayanamsa_1ex_1ut(JNIEnv *env, jclass swephexp, 
     int32 retc = swe_get_ayanamsa_ex_ut(tjd_ut, iflag, daya, serr);
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy, dayaArray, daya)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -891,7 +918,7 @@ Java_swisseph_SwephExp_swe_1utc_1to_1jd(JNIEnv *env, jclass swephexp, jint iyear
     int32 retc = swe_utc_to_jd(iyear, imonth, iday, ihour, imin, dsec, gregflag, dret, serr);
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy, dretArray, dret)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1147,7 +1174,7 @@ Java_swisseph_SwephExp_swe_1gauquelin_1sector(JNIEnv *env, jclass swephexp, jdou
     RLZ_DOUBLE_ARRAY_ELEMENTS(isGeoposCopy, geoposArray, geopos)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isDgsectCopy, dgsectArray, dgsect)
     RLZ_STRING_UTF_CHARS(isCopy, starName, starname)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1169,7 +1196,7 @@ Java_swisseph_SwephExp_swe_1sol_1eclipse_1where(JNIEnv *env, jclass swephexp, jd
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isGeoposCopy, geoposArray, geopos)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isAttrCopy, attrArray, attr)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1199,7 +1226,7 @@ Java_swisseph_SwephExp_swe_1lun_1occult_1where(JNIEnv *env, jclass swephexp, jdo
     RLZ_DOUBLE_ARRAY_ELEMENTS(isGeoposCopy, geoposArray, geopos)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isAttrCopy, attrArray, attr)
     RLZ_STRING_UTF_CHARS(isCopy, starName, starname)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1221,7 +1248,7 @@ Java_swisseph_SwephExp_swe_1sol_1eclipse_1how(JNIEnv *env, jclass swephexp, jdou
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isGeoposCopy, geoposArray, geopos)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isAttrCopy, attrArray, attr)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1244,7 +1271,7 @@ Java_swisseph_SwephExp_swe_1sol_1eclipse_1when_1loc(JNIEnv *env, jclass swephexp
     RLZ_DOUBLE_ARRAY_ELEMENTS(isGeoposCopy, geoposArray, geopos)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isTretCopy, tretArray, tret)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isAttrCopy, attrArray, attr)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1278,7 +1305,7 @@ Java_swisseph_SwephExp_swe_1lun_1occult_1when_1loc(JNIEnv *env, jclass swephexp,
     RLZ_DOUBLE_ARRAY_ELEMENTS(isTretCopy, tretArray, tret)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isAttrCopy, attrArray, attr)
     RLZ_STRING_UTF_CHARS(isCopy, starName, starname)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1298,7 +1325,7 @@ Java_swisseph_SwephExp_swe_1sol_1eclipse_1when_1glob(JNIEnv *env, jclass swephex
     int32 retc = swe_sol_eclipse_when_glob(tjd_start, ifl, ifltype, tret, backward, serr);
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy, tretArray, tret)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1327,7 +1354,7 @@ Java_swisseph_SwephExp_swe_1lun_1occult_1when_1glob(JNIEnv *env, jclass swephexp
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isTretCopy, tretArray, tret)
     RLZ_STRING_UTF_CHARS(isCopy, starName, starname)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1349,7 +1376,7 @@ Java_swisseph_SwephExp_swe_1lun_1eclipse_1how(JNIEnv *env, jclass swephexp, jdou
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isGeoposCopy, geoposArray, geopos)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isAttrCopy, attrArray, attr)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1368,7 +1395,7 @@ Java_swisseph_SwephExp_swe_1lun_1eclipse_1when(JNIEnv *env, jclass swephexp, jdo
     int32 retc = swe_lun_eclipse_when(tjd_start, ifl, ifltype, tret, backward, serr);
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy, tretArray, tret)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1391,7 +1418,7 @@ Java_swisseph_SwephExp_swe_1lun_1eclipse_1when_1loc(JNIEnv *env, jclass swephexp
     RLZ_DOUBLE_ARRAY_ELEMENTS(isGeoposCopy, geoposArray, geopos)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isTretCopy, tretArray, tret)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isAttrCopy, attrArray, attr)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1411,7 +1438,7 @@ Java_swisseph_SwephExp_swe_1pheno(JNIEnv *env, jclass swephexp, jdouble tjd, jin
     int32 retc = swe_pheno(tjd, ipl, iflag, attr, serr);
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy, attrArray, attr)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1431,7 +1458,7 @@ Java_swisseph_SwephExp_swe_1pheno_1ut(JNIEnv *env, jclass swephexp, jdouble tjd_
     int32 retc = swe_pheno_ut(tjd_ut, ipl, iflag, attr, serr);
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy, attrArray, attr)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1552,7 +1579,7 @@ Java_swisseph_SwephExp_swe_1rise_1trans_1true_1hor(JNIEnv *env, jclass swephexp,
     RLZ_DOUBLE_ARRAY_ELEMENTS(isGeoposCopy, geoposArray, geopos)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isTretCopy, tretArray, tret)
     RLZ_STRING_UTF_CHARS(isCopy, starName, starname)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1585,7 +1612,7 @@ Java_swisseph_SwephExp_swe_1rise_1trans(JNIEnv *env, jclass swephexp, jdouble tj
     RLZ_DOUBLE_ARRAY_ELEMENTS(isGeoposCopy, geoposArray, geopos)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isTretCopy, tretArray, tret)
     RLZ_STRING_UTF_CHARS(isCopy, starName, starname)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1613,7 +1640,7 @@ Java_swisseph_SwephExp_swe_1nod_1aps(JNIEnv *env, jclass swephexp, jdouble tjd_e
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy2, xndscArray, xndsc)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy3, xperiArray, xperi)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy4, xapheArray, xaphe)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1641,7 +1668,7 @@ Java_swisseph_SwephExp_swe_1nod_1aps_1ut(JNIEnv *env, jclass swephexp, jdouble t
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy2, xndscArray, xndsc)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy3, xperiArray, xperi)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy4, xapheArray, xaphe)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1661,7 +1688,7 @@ Java_swisseph_SwephExp_swe_1get_1orbital_1elements(JNIEnv *env, jclass swephexp,
     int32 retc = swe_get_orbital_elements(tjd_et, ipl, iflag, dret, serr);
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isDblCopy, dretArray, dret)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1688,7 +1715,7 @@ Java_swisseph_SwephExp_swe_1orbit_1max_1min_1true_1distance(JNIEnv *env, jclass 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy1, dmaxArray, dmax)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy2, dminArray, dmin)
     RLZ_DOUBLE_ARRAY_ELEMENTS(isCopy3, dtrueArray, dtrue)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1734,7 +1761,7 @@ Java_swisseph_SwephExp_swe_1time_1equ(JNIEnv *env, jclass swephexp, jdouble tjd,
     int32 retc = swe_time_equ(tjd, te, serr);
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isDblCopy, teArray, te)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1754,7 +1781,7 @@ Java_swisseph_SwephExp_swe_1lmt_1to_1lat(JNIEnv *env, jclass swephexp, jdouble t
     int32 retc = swe_lmt_to_lat(tjd_lmt, geolon, tjd_lat, serr);
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isDblCopy, tjdLatArray, tjd_lat)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 
@@ -1774,7 +1801,7 @@ Java_swisseph_SwephExp_swe_1lat_1to_1lmt(JNIEnv *env, jclass swephexp, jdouble t
     int32 retc = swe_lat_to_lmt(tjd_lat, geolon, tjd_lmt, serr);
 
     RLZ_DOUBLE_ARRAY_ELEMENTS(isDblCopy, tjdLmtArray, tjd_lmt)
-    ERR_BUILDER_APPEND_IF_ERR
+    ERR_BUILDER_APPEND_IF_SERR
     return retc;
 }
 

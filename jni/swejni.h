@@ -73,6 +73,14 @@ JNIEXPORT jstring JNICALL Java_swisseph_SwephExp_swe_1version
 
 /*
  * Class:     swisseph_SwephExp
+ * Method:    swe_get_denum
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_swisseph_SwephExp_swe_1get_1denum
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     swisseph_SwephExp
  * Method:    swe_get_library_path
  * Signature: ()Ljava/lang/String;
  */
